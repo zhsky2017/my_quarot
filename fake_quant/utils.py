@@ -178,7 +178,8 @@ def parser_gen():
     parser.add_argument(
         '--tasks',
         nargs='+',
-        default=["piqa", "hellaswag", "arc_easy", "arc_challenge", "winogrande", "lambada"],
+        #default=["piqa", "hellaswag", "arc_easy", "arc_challenge", "winogrande", "lambada"],
+        default=["piqa", "hellaswag", "arc_easy", "arc_challenge", "winogrande"],        
     )
     parser.add_argument('--lm_eval_batch_size', type=int, default=128, help='Batch size for evaluating with lm eval harness.')
     parser.add_argument(
