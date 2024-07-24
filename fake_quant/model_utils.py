@@ -85,13 +85,13 @@ def get_opt(model_name):
 
 
 def get_model(
-    model_name, hf_token,
+    model_name, 
     DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
     heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
-    REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio
+    REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio, hf_token=None
 ):
     if 'llama' in model_name:
-        return get_llama(model_name, hf_token=None,
+        return get_llama(model_name, hf_token=hf_token,
                          DYNQ=DYNQ,
                          HADAMARD=HADAMARD,
                          KRON=KRON,
