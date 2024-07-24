@@ -17,7 +17,10 @@ def main():
         wandb.config.update(args)
         
     transformers.set_seed(args.seed)
-    model = model_utils.get_model(args.model, args.hf_token)
+    model = model_utils.get_model(args.model, args.hf_token,
+                                  args.DYNQ, args.HADAMARD, args.KRON, args.KV_BITS1, args.KV_BITS2, args.KV_BITS3, args.KV_BITS4, 
+                                  args.heavy_budget_ratio1, args.heavy_budget_ratio2, args.heavy_budget_ratio3,
+                                  args.REFRESH, args.KV_BITS, args.H2O, args.heavy_budget_ratio, args.recent_budget_ratio)
     model.eval()
     
     
