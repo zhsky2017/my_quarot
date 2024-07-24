@@ -188,9 +188,9 @@ def parser_gen():
         help="Distribute the model on multiple GPUs for evaluation.",
     )
            
-    parser.add_argument('--DYNQ', action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument('--HADAMARD', action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument('--KRON', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--DYNQ', type=bool, default=False)
+    parser.add_argument('--HADAMARD', type=bool, default=False)
+    parser.add_argument('--KRON', type=bool, default=False)
     parser.add_argument('--KV_BITS1', type=int, default=4)
     parser.add_argument('--KV_BITS2', type=int, default=4)
     parser.add_argument('--KV_BITS3', type=int, default=4)
@@ -198,9 +198,9 @@ def parser_gen():
     parser.add_argument('--heavy_budget_ratio1', type=float, default=0.06)
     parser.add_argument('--heavy_budget_ratio2', type=float, default=0.14)
     parser.add_argument('--heavy_budget_ratio3', type=float, default=0.15)
-    parser.add_argument('--REFRESH', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--REFRESH', type=bool, default=False)
     parser.add_argument('--KV_BITS', type=int, default=4)
-    parser.add_argument('--H2O', action=argparse.BooleanOptionalAction, default=False)
+    parser.add_argument('--H2O', type=bool, default=False)
     parser.add_argument('--heavy_budget_ratio', type=float, default=0.11)
     parser.add_argument('--recent_budget_ratio', type=float, default=0.03)
 
