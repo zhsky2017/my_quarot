@@ -206,6 +206,7 @@ def parser_gen():
 
     args = parser.parse_args()
     if args.lm_eval:
+        import lm_eval
         from lm_eval import tasks
         from lm_eval import utils as lm_eval_utils
         #from lm_eval.tasks import initialize_tasks
