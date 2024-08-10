@@ -109,7 +109,7 @@ def get_model(
                          H2O = H2O,
                          heavy_budget_ratio = heavy_budget_ratio,
                          recent_budget_ratio = recent_budget_ratio,
-                         score_coeff)
+                         score_coeff = score_coeff)
     elif 'opt' in model_name:
         return get_opt(model_name)
     else:
