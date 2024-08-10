@@ -40,7 +40,8 @@ def get_layers(model):
 def get_llama(model_name, hf_token, 
               DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
               heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
-              REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio
+              REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio,
+              score_coeff
              ):
     torch.nn.init.kaiming_uniform_ = skip
     torch.nn.init.uniform_ = skip
@@ -62,7 +63,8 @@ def get_llama(model_name, hf_token,
                                                           KV_BITS=KV_BITS,
                                                           H2O = H2O,
                                                           heavy_budget_ratio = heavy_budget_ratio,
-                                                          recent_budget_ratio = recent_budget_ratio
+                                                          recent_budget_ratio = recent_budget_ratio,
+                                                          score_coeff = score_coeff
                                                          )
     #model = transformers.LlamaForCausalLM.from_pretrained(model_name, torch_dtype='auto', 
     #                                                      use_auth_token=hf_token,
@@ -88,7 +90,7 @@ def get_model(
     model_name, 
     DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
     heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
-    REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio, hf_token=None
+    REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio, score_coeff, hf_token=None
 ):
     if 'llama' in model_name:
         return get_llama(model_name, hf_token=hf_token,
@@ -106,7 +108,8 @@ def get_model(
                          KV_BITS=KV_BITS,
                          H2O = H2O,
                          heavy_budget_ratio = heavy_budget_ratio,
-                         recent_budget_ratio = recent_budget_ratio)
+                         recent_budget_ratio = recent_budget_ratio,
+                         score_coeff)
     elif 'opt' in model_name:
         return get_opt(model_name)
     else:
