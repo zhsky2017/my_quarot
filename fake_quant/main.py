@@ -137,9 +137,9 @@ def main():
         )
 
     
-    dataset_ppl = eval_utils.evaluator(model, testloader, utils.DEV, args)
-    if args.wandb:
-            wandb.log({'ppl/{}'.format(args.eval_dataset.upper()): dataset_ppl})
+    #dataset_ppl = eval_utils.evaluator(model, testloader, utils.DEV, args)
+    #if args.wandb:
+    #        wandb.log({'ppl/{}'.format(args.eval_dataset.upper()): dataset_ppl})
 
     if not args.lm_eval:
         return
@@ -147,10 +147,12 @@ def main():
         # Import lm_eval utils
         import lm_eval
         from lm_eval import utils as lm_eval_utils
-        from lm_eval.api.registry import ALL_TASKS
+        #from lm_eval.api.registry import ALL_TASKS
         from lm_eval.models.huggingface import HFLM
-
-        
+        from lm_eval import tasks
+        task_manager = lm_eval.tasks.TaskManager()
+        task_manager.initialize_tasks()        
+        ALL_TASKS = task_manager.all_tasks
     
     if args.distribute:
         utils.distribute_model(model)
