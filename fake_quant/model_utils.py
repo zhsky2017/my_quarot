@@ -64,7 +64,8 @@ def get_llama(model_name, hf_token,
                                                           H2O = H2O,
                                                           heavy_budget_ratio = heavy_budget_ratio,
                                                           recent_budget_ratio = recent_budget_ratio,
-                                                          score_coeff = score_coeff
+                                                          score_coeff = score_coeff,
+                                                          output_attentions = True,
                                                          )
     #model = transformers.LlamaForCausalLM.from_pretrained(model_name, torch_dtype='auto', 
     #                                                      use_auth_token=hf_token,
