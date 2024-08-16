@@ -76,12 +76,34 @@ def get_llama(model_name, hf_token,
 
 
 
-def get_opt(model_name):
+def get_opt(model_name,
+            DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
+            heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
+            REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio,
+            score_coeff):
     torch.nn.init.kaiming_uniform_ = skip
     torch.nn.init.uniform_ = skip
     torch.nn.init.normal_ = skip
     model = transformers.OPTForCausalLM.from_pretrained(model_name, torch_dtype='auto',
-                                                        low_cpu_mem_usage=True)
+                                                        low_cpu_mem_usage=True, 
+                                                        attn_implementation = "eager", 
+                                                        DYNQ=DYNQ,
+                                                        HADAMARD=HADAMARD,
+                                                        KRON=KRON,
+                                                        KV_BITS1=KV_BITS1,
+                                                        KV_BITS2=KV_BITS2,
+                                                        KV_BITS3=KV_BITS3,
+                                                        KV_BITS4 = KV_BITS4,
+                                                        heavy_budget_ratio1 = heavy_budget_ratio1,
+                                                        heavy_budget_ratio2 = heavy_budget_ratio2,
+                                                        heavy_budget_ratio3 = heavy_budget_ratio3,
+                                                        REFRESH = REFRESH,
+                                                        KV_BITS=KV_BITS,
+                                                        H2O = H2O,
+                                                        heavy_budget_ratio = heavy_budget_ratio,
+                                                        recent_budget_ratio = recent_budget_ratio,
+                                                        score_coeff = score_coeff,
+                                                        output_attentions = True,)
     model.seqlen = model.config.max_position_embeddings
     logging.info('---> Loading {} Model with seq_len: {}'.format(model_name, model.seqlen))
     return model
@@ -112,7 +134,23 @@ def get_model(
                          recent_budget_ratio = recent_budget_ratio,
                          score_coeff = score_coeff)
     elif 'opt' in model_name:
-        return get_opt(model_name)
+        return get_opt(model_name,
+                       DYNQ=DYNQ,
+                       HADAMARD=HADAMARD,
+                       KRON=KRON,
+                       KV_BITS1=KV_BITS1,
+                       KV_BITS2=KV_BITS2,
+                       KV_BITS3=KV_BITS3,
+                       KV_BITS4 = KV_BITS4,
+                       heavy_budget_ratio1 = heavy_budget_ratio1,
+                       heavy_budget_ratio2 = heavy_budget_ratio2,
+                       heavy_budget_ratio3 = heavy_budget_ratio3,
+                       REFRESH = REFRESH,
+                       KV_BITS=KV_BITS,
+                       H2O = H2O,
+                       heavy_budget_ratio = heavy_budget_ratio,
+                       recent_budget_ratio = recent_budget_ratio,
+                       score_coeff = score_coeff)
     else:
         raise ValueError(f'Unknown model {model_name}')
 
