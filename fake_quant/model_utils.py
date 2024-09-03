@@ -115,7 +115,7 @@ def get_model(
     model_name, 
     DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
     heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
-    REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio, score_coeff, hf_token=None
+    REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio, score_coeff, TH_H, TH_L, hf_token=None
 ):
     if 'llama' in model_name:
         return get_llama(model_name, hf_token=hf_token,
@@ -134,7 +134,9 @@ def get_model(
                          H2O = H2O,
                          heavy_budget_ratio = heavy_budget_ratio,
                          recent_budget_ratio = recent_budget_ratio,
-                         score_coeff = score_coeff)
+                         score_coeff = score_coeff,
+                         TH_H = TH_H,
+                         TH_L = TH_L,)
     elif 'opt' in model_name:
         return get_opt(model_name,
                        DYNQ=DYNQ,
