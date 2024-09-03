@@ -204,7 +204,9 @@ def parser_gen():
     parser.add_argument('--H2O', action=argparse.BooleanOptionalAction, default=False)
     parser.add_argument('--heavy_budget_ratio', type=float, default=0.11)
     parser.add_argument('--recent_budget_ratio', type=float, default=0.03)
-    parser.add_argument('--score_coeff', type=float, default=1)        
+    parser.add_argument('--score_coeff', type=float, default=1) 
+    parser.add_argument('--TH_H', type=float, default=0.)
+    parser.add_argument('--TH_L', type=float, default=0.)        
 
     args = parser.parse_args()
     if args.lm_eval:
