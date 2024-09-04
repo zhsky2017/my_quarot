@@ -233,7 +233,7 @@ def get_pre_head_layernorm(model, model_type):
     elif model_type == OPT_MODEL:
         pre_head_layernorm = model.model.decoder.final_layer_norm
         assert pre_head_layernorm is not None
-    if model_type == MISTRAL_MODEL:
+    elif model_type == MISTRAL_MODEL:
         pre_head_layernorm = model.model.norm
         assert isinstance(pre_head_layernorm,
                           transformers.models.mistral.modeling_mistral.MistralRMSNorm)
