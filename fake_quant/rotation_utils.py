@@ -65,6 +65,9 @@ def fuse_layer_norms(model):
         elif model_type == model_utils.OPT_MODEL:
             fuse_ln_linear(layer.self_attn_layer_norm, [layer.self_attn.q_proj, layer.self_attn.k_proj, layer.self_attn.v_proj])
             fuse_ln_linear(layer.final_layer_norm, [layer.fc1])
+        elif model_type == model_utils.MISTRAL_MODEL:
+            fuse_ln_linear(layer.post_attention_layernorm, [layer.mlp.up_proj, layer.mlp.gate_proj])    
+            fuse_ln_linear(layer.input_layernorm, [layer.self_attn.q_proj, layer.self_attn.k_proj, layer.self_attn.v_proj])
         else:
             raise ValueError(f'Unknown model type {model_type}')
             
@@ -77,12 +80,27 @@ def fuse_layer_norms(model):
     
     fuse_ln_linear(model_utils.get_pre_head_layernorm(**kwargs), [model_utils.get_lm_head(**kwargs)])
     
-    model_utils.replace_modules(
-        model,
-        transformers.models.llama.modeling_llama.LlamaRMSNorm if model_type == model_utils.LLAMA_MODEL else torch.nn.LayerNorm,
-        lambda _: model_utils.RMSN(model.config.hidden_size),
-        replace_layers=False,
-    )
+    if model_type == model_utils.LLAMA_MODEL:
+        model_utils.replace_modules(
+            model,
+            transformers.models.llama.modeling_llama.LlamaRMSNorm,
+            lambda _: model_utils.RMSN(model.config.hidden_size),
+            replace_layers=False,
+        )
+    elif model_type == model_utils.MISTRAL_MODEL:
+        model_utils.replace_modules(
+            model,
+            transformers.models.Mistral.modeling_mistral.MistralRMSNorm,
+            lambda _: model_utils.RMSN(model.config.hidden_size),
+            replace_layers=False,
+        )
+    else:
+        model_utils.replace_modules(
+            model,
+            torch.nn.LayerNorm,
+            lambda _: model_utils.RMSN(model.config.hidden_size),
+            replace_layers=False,
+        )
     
 
 def random_orthogonal_matrix(size, device):
@@ -136,6 +154,8 @@ def rotate_attention_output(layer, Q, model_type) -> None:
         W = layer.self_attn.o_proj
     elif model_type == model_utils.OPT_MODEL:
         W = layer.self_attn.out_proj
+    elif model_type == model_utils.MISTRAL_MODEL:
+        W = layer.self_attn.o_proj
     else:
         raise ValueError(f'Unknown model type {model_type}')
 
@@ -152,6 +172,8 @@ def rotate_mlp_input(layer, Q, model_type):
         mlp_inputs = [layer.mlp.up_proj, layer.mlp.gate_proj]
     elif model_type == model_utils.OPT_MODEL:
         mlp_inputs = [layer.fc1]
+    elif model_type == model_utils.MISTRAL_MODEL:
+        mlp_inputs = [layer.mlp.up_proj, layer.mlp.gate_proj]
     else:
         raise ValueError(f'Unknown model type {model_type}')
     for W in mlp_inputs:
@@ -165,6 +187,8 @@ def rotate_mlp_output(layer, Q, model_type):
         W = layer.mlp.down_proj
     elif model_type == model_utils.OPT_MODEL:
         W = layer.fc2
+    elif model_type == model_utils.MISTRAL_MODEL:
+        W = layer.mlp.down_proj
     else:
         raise ValueError(f'Unknown model type {model_type}')
     dtype = W.weight.data.dtype
@@ -215,7 +239,7 @@ def rotate_head(model, Q: torch.Tensor) -> None:
 
 def rotate_ov_proj(layer, model_type, head_num, head_dim):
     v_proj = layer.self_attn.v_proj
-    if model_type == model_utils.LLAMA_MODEL:
+    if model_type == model_utils.LLAMA_MODEL or model_type == model_utils.MISTRAL_MODEL:
         o_proj = layer.self_attn.o_proj
     elif model_type == model_utils.OPT_MODEL:
         o_proj = layer.self_attn.out_proj
