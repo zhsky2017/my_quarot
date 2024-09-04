@@ -360,26 +360,6 @@ def capture_layer_io(model_type, layer, layer_input):
             module = getattr(layer.self_attn, name, None) or getattr(layer, name, None)
             handles.append(module.register_forward_hook(hook_factory(name, captured_outputs, False)))
 
-        if model_type == LLAMA_MODEL:
-        captured_inputs = {
-            'k_proj': [],  # q_proj, v_proj has the same input as k_proj
-            'o_proj': [],
-            'gate_proj': [],  # up_proj has the same input as gate_proj
-            'down_proj': []
-        }
-
-        captured_outputs = {
-            'v_proj': [],
-        }
-
-        for name in captured_inputs.keys():
-            module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
-            handles.append(module.register_forward_hook(hook_factory(name, captured_inputs, True)))
-
-        for name in captured_outputs.keys():
-            module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
-            handles.append(module.register_forward_hook(hook_factory(name, captured_outputs, False)))
-
     elif model_type == MISTRAL_MODEL:
         captured_inputs = {
             'k_proj': [],  # q_proj, v_proj has the same input as k_proj
