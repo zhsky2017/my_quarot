@@ -62,7 +62,7 @@ def main():
             model.load_state_dict(save_dict["model"])
             
         elif not args.w_rtn: # GPTQ Weight Quantization
-            assert "llama" in args.model, "Only llama is supported for GPTQ!"
+            assert ("llama" in args.model) or ("mistral" in args.model), "Only llama or mistral is supported for GPTQ!"
             
             trainloader = data_utils.get_loaders(
                 args.cal_dataset, nsamples=args.nsamples,
