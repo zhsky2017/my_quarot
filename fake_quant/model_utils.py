@@ -9,6 +9,8 @@ OPT_MODEL = transformers.models.opt.modeling_opt.OPTForCausalLM
 OPT_LAYER = transformers.models.opt.modeling_opt.OPTDecoderLayer
 LLAMA_MODEL = transformers.models.llama.modeling_llama.LlamaForCausalLM
 LLAMA_LAYER = transformers.models.llama.modeling_llama.LlamaDecoderLayer
+MISTRAL_MODEL = transformers.models.mistral.modeling_mistral.MistralForCausalLM
+MISTRAL_LAYER = transformers.models.mistral.modeling_mistral.MistralDecoderLayer
 
 
 def model_type_extractor(model):
@@ -16,6 +18,8 @@ def model_type_extractor(model):
         return LLAMA_MODEL
     elif isinstance(model, OPT_MODEL):
         return OPT_MODEL
+    elif isinstance(model, MISTRAL_MODEL):
+        return MISTRAL_MODEL
     else:
         raise ValueError(f'Unknown model type {model}')
 
@@ -26,6 +30,8 @@ def skip(*args, **kwargs):
 def get_rope_function_name(model):
     if isinstance(model, LLAMA_MODEL):
         return "apply_rotary_pos_emb"
+    elif isinstance(model, MISTRAL_MODEL):
+        return "apply_rotary_pos_emb"
     raise NotImplementedError
 
 
@@ -34,6 +40,8 @@ def get_layers(model):
         return model.model.decoder.layers
     if isinstance(model, LLAMA_MODEL):
         return model.model.layers
+    if isinstance(model, MISTRAL_MODEL):
+        return model.model.layers    
     raise NotImplementedError
 
 
@@ -110,7 +118,19 @@ def get_opt(model_name,
     logging.info('---> Loading {} Model with seq_len: {}'.format(model_name, model.seqlen))
     return model
 
-
+def get_mistral(model_name, hf_token, 
+             ):
+    torch.nn.init.kaiming_uniform_ = skip
+    torch.nn.init.uniform_ = skip
+    torch.nn.init.normal_ = skip
+    model = transformers.MistralForCausalLM.from_pretrained(model_name, torch_dtype='auto', attn_implementation = "eager", 
+                                                          use_auth_token=hf_token,
+                                                          low_cpu_mem_usage=True,
+                                                         )  
+    model.seqlen = 2048
+    logging.info('---> Loading {} Model with seq_len: {}'.format(model_name, model.seqlen))
+    return model
+                 
 def get_model(
     model_name, 
     DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
@@ -155,6 +175,9 @@ def get_model(
                        heavy_budget_ratio = heavy_budget_ratio,
                        recent_budget_ratio = recent_budget_ratio,
                        score_coeff = score_coeff)
+    elif 'mistral' in model_name:
+        return get_mistral(model_name, hf_token=hf_token,
+)
     else:
         raise ValueError(f'Unknown model {model_name}')
 
@@ -164,6 +187,8 @@ def get_model_type(model):
         model_type = OPT_MODEL
     elif isinstance(model, LLAMA_MODEL):
         model_type = LLAMA_MODEL
+    elif isinstance(model, MISTRAL_MODEL):
+        model_type = MISTRAL_MODEL    
     else:
         raise ValueError(f'Unknown model type {model}')
     return model_type
@@ -173,6 +198,8 @@ def get_embeddings(model, model_type) -> list[torch.nn.Module]:
         return [model.model.embed_tokens]
     elif model_type == OPT_MODEL:
         return [model.model.decoder.embed_tokens, model.model.decoder.embed_positions]
+    elif model_type = MISTRAL_MODEL:
+        return [model.model.embed_tokens]
     else:
         raise ValueError(f'Unknown model type {model_type}')
 
@@ -182,6 +209,8 @@ def get_transformer_layers(model, model_type):
         return [layer for layer in model.model.layers]
     elif model_type == OPT_MODEL:
         return [layer for layer in model.model.decoder.layers]
+    elif model_type == MISTRAL_MODEL:
+        return [layer for layer in model.model.layers]
     else:
         raise ValueError(f'Unknown model type {model_type}')
 
@@ -190,6 +219,8 @@ def get_lm_head(model, model_type):
     if model_type == LLAMA_MODEL:
         return model.lm_head
     elif model_type == OPT_MODEL:
+        return model.lm_head
+    elif model_type == MISTRAL_MODEL:
         return model.lm_head
     else:
         raise ValueError(f'Unknown model type {model_type}')
@@ -202,6 +233,10 @@ def get_pre_head_layernorm(model, model_type):
     elif model_type == OPT_MODEL:
         pre_head_layernorm = model.model.decoder.final_layer_norm
         assert pre_head_layernorm is not None
+    if model_type == MISTRAL_MODEL:
+        pre_head_layernorm = model.model.norm
+        assert isinstance(pre_head_layernorm,
+                          transformers.models.mistral.modeling_mistral.MistralRMSNorm)
     else:
         raise ValueError(f'Unknown model type {model_type}')
     return pre_head_layernorm
@@ -212,6 +247,8 @@ def get_mlp_bottleneck_size(model):
         return model.config.intermediate_size
     elif model_type == OPT_MODEL:
         return model.config.ffn_dim
+    elif model_type == MISTRAL_MODEL:
+        return model.config.intermediate_size
     else:
         raise ValueError(f'Unknown model type {model_type}')
 
@@ -321,6 +358,46 @@ def capture_layer_io(model_type, layer, layer_input):
         for name in captured_outputs.keys():
             # In OPT, fc1 and fc2 are directly contained in OPTDecoderLayer
             module = getattr(layer.self_attn, name, None) or getattr(layer, name, None)
+            handles.append(module.register_forward_hook(hook_factory(name, captured_outputs, False)))
+
+        if model_type == LLAMA_MODEL:
+        captured_inputs = {
+            'k_proj': [],  # q_proj, v_proj has the same input as k_proj
+            'o_proj': [],
+            'gate_proj': [],  # up_proj has the same input as gate_proj
+            'down_proj': []
+        }
+
+        captured_outputs = {
+            'v_proj': [],
+        }
+
+        for name in captured_inputs.keys():
+            module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
+            handles.append(module.register_forward_hook(hook_factory(name, captured_inputs, True)))
+
+        for name in captured_outputs.keys():
+            module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
+            handles.append(module.register_forward_hook(hook_factory(name, captured_outputs, False)))
+
+    elif model_type == MISTRAL_MODEL:
+        captured_inputs = {
+            'k_proj': [],  # q_proj, v_proj has the same input as k_proj
+            'o_proj': [],
+            'gate_proj': [],  # up_proj has the same input as gate_proj
+            'down_proj': []
+        }
+
+        captured_outputs = {
+            'v_proj': [],
+        }
+
+        for name in captured_inputs.keys():
+            module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
+            handles.append(module.register_forward_hook(hook_factory(name, captured_inputs, True)))
+
+        for name in captured_outputs.keys():
+            module = getattr(layer.self_attn, name, None) or getattr(layer.mlp, name, None)
             handles.append(module.register_forward_hook(hook_factory(name, captured_outputs, False)))
     else:
         raise ValueError(f'Unknown model type {model_type}')
