@@ -198,7 +198,7 @@ def get_embeddings(model, model_type) -> list[torch.nn.Module]:
         return [model.model.embed_tokens]
     elif model_type == OPT_MODEL:
         return [model.model.decoder.embed_tokens, model.model.decoder.embed_positions]
-    elif model_type = MISTRAL_MODEL:
+    elif model_type == MISTRAL_MODEL:
         return [model.model.embed_tokens]
     else:
         raise ValueError(f'Unknown model type {model_type}')
