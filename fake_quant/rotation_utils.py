@@ -90,7 +90,7 @@ def fuse_layer_norms(model):
     elif model_type == model_utils.MISTRAL_MODEL:
         model_utils.replace_modules(
             model,
-            transformers.models.Mistral.modeling_mistral.MistralRMSNorm,
+            transformers.models.mistral.modeling_mistral.MistralRMSNorm,
             lambda _: model_utils.RMSN(model.config.hidden_size),
             replace_layers=False,
         )
