@@ -207,7 +207,8 @@ def parser_gen():
     parser.add_argument('--recent_budget_ratio', type=float, default=0.03)
     parser.add_argument('--score_coeff', type=float, default=1) 
     parser.add_argument('--TH_H', type=float, default=0.)
-    parser.add_argument('--TH_L', type=float, default=0.)        
+    parser.add_argument('--TH_L', type=float, default=0.) 
+    parser.add_argument('--CACHE_SIZE', type=int, default=100000)         
 
     args = parser.parse_args()
     if args.lm_eval:
