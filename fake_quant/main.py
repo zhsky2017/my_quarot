@@ -21,7 +21,7 @@ def main():
                                   args.DYNQ, args.HADAMARD, args.KRON, args.KV_BITS1, args.KV_BITS2, args.KV_BITS3, args.KV_BITS4, 
                                   args.heavy_budget_ratio1, args.heavy_budget_ratio2, args.heavy_budget_ratio3,
                                   args.REFRESH, args.KV_BITS, args.H2O, args.heavy_budget_ratio, args.recent_budget_ratio, 
-                                  args.TH_H, args.TH_L,
+                                  args.TH_H, args.TH_L, args.CACHE_SIZE,
                                   args.score_coeff, args.hf_token)
     model.eval()
     
