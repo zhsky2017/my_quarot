@@ -49,7 +49,7 @@ def get_llama(model_name, hf_token,
               DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
               heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
               REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio,
-              score_coeff, TH_H, TH_L
+              score_coeff, TH_H, TH_L, CACHE_SIZE
              ):
     torch.nn.init.kaiming_uniform_ = skip
     torch.nn.init.uniform_ = skip
@@ -76,6 +76,7 @@ def get_llama(model_name, hf_token,
                                                           output_attentions = True,
                                                           TH_H = TH_H,
                                                           TH_L = TH_L,
+                                                          CACHE_SIZE = CACHE_SIZE,
                                                          )
     #model = transformers.LlamaForCausalLM.from_pretrained(model_name, torch_dtype='auto', 
     #                                                      use_auth_token=hf_token,
