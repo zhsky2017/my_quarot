@@ -120,6 +120,10 @@ def get_opt(model_name,
     return model
 
 def get_mistral(model_name, hf_token, 
+              DYNQ, HADAMARD, KRON, KV_BITS1, KV_BITS2, KV_BITS3, KV_BITS4, 
+              heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
+              REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio,
+              score_coeff, TH_H, TH_L, CACHE_SIZE                
              ):
     torch.nn.init.kaiming_uniform_ = skip
     torch.nn.init.uniform_ = skip
@@ -127,6 +131,26 @@ def get_mistral(model_name, hf_token,
     model = transformers.MistralForCausalLM.from_pretrained(model_name, torch_dtype='auto', attn_implementation = "eager", 
                                                           use_auth_token=hf_token,
                                                           low_cpu_mem_usage=True,
+                                                          DYNQ=DYNQ,
+                                                          HADAMARD=HADAMARD,
+                                                          KRON=KRON,
+                                                          KV_BITS1=KV_BITS1,
+                                                          KV_BITS2=KV_BITS2,
+                                                          KV_BITS3=KV_BITS3,
+                                                          KV_BITS4 = KV_BITS4,
+                                                          heavy_budget_ratio1 = heavy_budget_ratio1,
+                                                          heavy_budget_ratio2 = heavy_budget_ratio2,
+                                                          heavy_budget_ratio3 = heavy_budget_ratio3,
+                                                          REFRESH = REFRESH,
+                                                          KV_BITS=KV_BITS,
+                                                          H2O = H2O,
+                                                          heavy_budget_ratio = heavy_budget_ratio,
+                                                          recent_budget_ratio = recent_budget_ratio,
+                                                          score_coeff = score_coeff,
+                                                          output_attentions = True,
+                                                          TH_H = TH_H,
+                                                          TH_L = TH_L,
+                                                          CACHE_SIZE = CACHE_SIZE,                                                          
                                                          )  
     model.seqlen = 2048
     logging.info('---> Loading {} Model with seq_len: {}'.format(model_name, model.seqlen))
@@ -179,6 +203,25 @@ def get_model(
                        score_coeff = score_coeff)
     elif 'mistral' in model_name:
         return get_mistral(model_name, hf_token=hf_token,
+                         DYNQ=DYNQ,
+                         HADAMARD=HADAMARD,
+                         KRON=KRON,
+                         KV_BITS1=KV_BITS1,
+                         KV_BITS2=KV_BITS2,
+                         KV_BITS3=KV_BITS3,
+                         KV_BITS4 = KV_BITS4,
+                         heavy_budget_ratio1 = heavy_budget_ratio1,
+                         heavy_budget_ratio2 = heavy_budget_ratio2,
+                         heavy_budget_ratio3 = heavy_budget_ratio3,
+                         REFRESH = REFRESH,
+                         KV_BITS=KV_BITS,
+                         H2O = H2O,
+                         heavy_budget_ratio = heavy_budget_ratio,
+                         recent_budget_ratio = recent_budget_ratio,
+                         score_coeff = score_coeff,
+                         TH_H = TH_H,
+                         TH_L = TH_L,
+                         CACHE_SIZE = CACHE_SIZE,                           
 )
     else:
         raise ValueError(f'Unknown model {model_name}')
