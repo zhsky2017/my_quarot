@@ -162,7 +162,7 @@ def get_model(
     heavy_budget_ratio1, heavy_budget_ratio2, heavy_budget_ratio3,
     REFRESH, KV_BITS, H2O, heavy_budget_ratio, recent_budget_ratio, score_coeff, TH_H, TH_L, CACHE_SIZE, hf_token=None
 ):
-    if 'llama' in model_name:
+    if 'llama' in model_name or 'Llama' in model_name:
         return get_llama(model_name, hf_token=hf_token,
                          DYNQ=DYNQ,
                          HADAMARD=HADAMARD,
