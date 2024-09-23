@@ -56,7 +56,7 @@ def get_llama(model_name, hf_token,
     torch.nn.init.normal_ = skip
     model = transformers.LlamaForCausalLM.from_pretrained(model_name, torch_dtype='auto', attn_implementation = "eager", 
                                                           use_auth_token=hf_token,
-                                                          device_map="auto",
+                                                          low_cpu_mem_usage=True,
                                                           DYNQ=DYNQ,
                                                           HADAMARD=HADAMARD,
                                                           KRON=KRON,
