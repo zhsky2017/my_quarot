@@ -213,7 +213,67 @@ class ActQuantWrapper(torch.nn.Module):
 
         return str_
 
+    # Modify for act visual
     def forward(self, x):
+        x_dtype = x.dtype
+
+        # Rotate, if needed
+        if self.online_full_had:
+            
+            if self.fp32_had: # Full Hadamard in FP32
+                x = hadamard_utils.matmul_hadU_cuda(x.float(), self.had_K, self.K).to(x_dtype)
+            else: # Full Hadamard in FP16
+                x = hadamard_utils.matmul_hadU_cuda(x, self.had_K, self.K)
+            
+        elif self.online_partial_had:
+            # todo: implement this in QAttention to avoid reshaping!
+            
+            if self.fp32_had:
+                x = x.float()
+                
+            init_shape = x.shape
+            if self.K == 1:
+                x = fast_hadamard_transform.hadamard_transform(x.reshape(-1, init_shape[-1]//self.had_dim, self.had_dim).transpose(1, 2),
+                                                               scale=1/math.sqrt(init_shape[-1]//self.had_dim)).transpose(1, 2)
+            else:
+                x = (self.had_K.to(x.dtype) @ x.reshape(-1, init_shape[-1]//self.had_dim, self.had_dim)) / math.sqrt(init_shape[-1]//self.had_dim)
+                
+            if self.fp32_had:
+                x = x.to(x_dtype)
+            x = x.reshape(init_shape)
+
+        # Get module input x
+        self.input_orgin = x.detach().cpu().clone()
+        # print(self.input_orgin.shape)
+        # print(init_shape)
+        import copy
+        # x_ = copy.deepcopy(x)
+        # x[torch.abs(x_)>4] = 0
+        # print(torch.sum(x_>4))
+        
+        if self.quantizer.bits < 16: #Quantize, if needed
+            self.quantizer.find_params(x)
+            x = self.quantizer(x).to(x_dtype)
+            self.quantizer.free()
+
+        # Get module input x (quant -> dequant)
+        self.input_quant = x.detach().cpu().clone()
+        # x[torch.abs(x_)>4] = x_[torch.abs(x_)>4]
+        
+        # x[:, 0, :] = torch.tensor(self.input_orgin[...,0, :]).cuda()
+        # x[:, 171, :] = torch.tensor(self.input_orgin[...,171, :]).cuda()
+        # x[:, 146, :] = torch.tensor(self.input_orgin[...,146, :]).cuda()
+        x = self.module(x).to(x_dtype)
+
+        if self.out_quantizer.bits < 16: #Quantize the output, if needed
+            self.out_quantizer.find_params(x)
+            x = self.out_quantizer(x).to(x_dtype)
+            self.out_quantizer.free()
+
+        return x
+
+    
+    def forward_backup(self, x):
         x_dtype = x.dtype
 
         # Rotate, if needed

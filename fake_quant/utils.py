@@ -90,7 +90,7 @@ def parser_gen():
                         help='''Rotate the moodel. This will include online rotation for down-projection and
                         out-projection. Note that this does not apply rotation to the K/Q and they will be rotated
                         if we want to quantize the Keys''')
-    parser.add_argument('--rotate_mode', type=str, default='hadamard', choices=['hadamard', 'random', 'sparse_hadamard'])
+    parser.add_argument('--rotate_mode', type=str, default='hadamard', choices=['hadamard', 'random'])
     parser.add_argument('--rotation_seed', type=int, default=-1,
                         help='Random Seed for generating random matrix!!')
     parser.add_argument('--fp32_had', action=argparse.BooleanOptionalAction, default=False,

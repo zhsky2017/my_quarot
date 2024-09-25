@@ -122,33 +122,11 @@ def random_orthogonal_matrix(size, device):
     q *= torch.sign(torch.diag(r)).unsqueeze(0)
     return q
 
-def kron_mat_calc(size, dtype=torch.float16):
-    #50% sparse hadamard
-    x = torch.tensor([[1, 1],[1, -1]], dtype=dtype)
-    x_inv = torch.tensor([[1, 1],[1, -1]], dtype=dtype)
-    y = torch.tensor([[1, 0],[0, -1]], dtype=dtype)
-    y_inv = torch.tensor([[1, 0],[0, -1]], dtype=dtype)
-
-    #75% sparse hadamard
-    #x = torch.tensor([[1, 1],[1, -1]], dtype=dtype)
-    #x_inv = torch.tensor([[1, 1],[1, -1]], dtype=dtype)
-    #y = torch.tensor([[0, 1, 0, 0],[1, 0, 0, 0], [0, 0, 0, -1], [0, 0, -1, 0]], dtype=dtype)
-    #y_inv = torch.tensor([[0, 1, 0, 0],[1, 0, 0, 0], [0, 0, 0, -1], [0, 0, -1, 0]], dtype=dtype)
-    i = 2
-    while i < size:
-        y = torch.kron(x, y)
-        y_inv = torch.kron(x_inv, y_inv)
-        i = i * 2
-    return y / torch.tensor(size).sqrt() * torch.tensor(2).sqrt(), y_inv / torch.tensor(size).sqrt() * torch.tensor(2).sqrt()
-
 def get_orthogonal_matrix(size, mode, device=utils.DEV):
     if mode == 'random':
         return random_orthogonal_matrix(size, device)
     elif mode == 'hadamard':
         return random_hadamard_matrix(size, device)
-    elif mode == 'sparse_hadamard':
-        q, q_inv = kron_mat_calc(size, torch.float64)
-        return q.to(device)
     else:
         raise ValueError(f'Unknown mode {mode}')
 
